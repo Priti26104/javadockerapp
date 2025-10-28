@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     // Replace with your Docker Hub image name like yourdockerhubuser/java-docker-app
-    DOCKER_IMAGE = "yourdockerhubusername/java-docker-app"
+    DOCKER_IMAGE = "prit2004/java-docker-app"
     TAG = "${env.BUILD_NUMBER}"
   }
 
