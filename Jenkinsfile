@@ -18,7 +18,7 @@ pipeline {
         stage('Build with Maven') {
             steps {
                 echo 'Building application with Maven...'
-                sh 'mvn clean package -DskipTests'
+                bat 'mvn clean package -DskipTests'
             }
         }
 
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    sh "docker build -t ${DOCKER_IMAGE}:${TAG} -t ${DOCKER_IMAGE}:latest ."
+                    bat "docker build -t %DOCKER_IMAGE%:%TAG% -t %DOCKER_IMAGE%:latest ."
                 }
             }
         }
@@ -36,10 +36,12 @@ pipeline {
                 script {
                     echo 'Pushing image to Docker Hub...'
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                        sh "docker push ${DOCKER_IMAGE}:${TAG}"
-                        sh "docker push ${DOCKER_IMAGE}:latest"
-                        sh 'docker logout'
+                        bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKER_IMAGE%:%TAG%
+                        docker push %DOCKER_IMAGE%:latest
+                        docker logout
+                        """
                     }
                 }
             }
@@ -49,7 +51,7 @@ pipeline {
             steps {
                 script {
                     echo 'Running the Docker container...'
-                    sh "docker run -d -p 8080:8080 ${DOCKER_IMAGE}:${TAG}"
+                    bat "docker run -d -p 8080:8080 %DOCKER_IMAGE%:%TAG%"
                 }
             }
         }
@@ -58,7 +60,7 @@ pipeline {
     post {
         success {
             echo "✅ Build and deployment successful!"
-            echo "Image pushed: ${DOCKER_IMAGE}:${TAG}"
+            echo "Image pushed: ${env.DOCKER_IMAGE}:${env.TAG}"
         }
         failure {
             echo "❌ Build failed. Check logs."
